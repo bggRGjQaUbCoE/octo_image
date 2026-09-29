@@ -3,7 +3,7 @@ import 'dart:ui' as ui show Codec;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'transparent_image.dart';
 
