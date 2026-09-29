@@ -58,7 +58,7 @@ class _FadeWidgetState extends State<FadeWidget>
   void initState() {
     super.initState();
     controller = AnimationController(duration: widget.duration, vsync: this);
-    final curved = CurvedAnimation(parent: controller, curve: widget.curve);
+    final curved = controller.drive(CurveTween(curve: widget.curve));
     var begin = widget.direction == AnimationDirection.forward ? 0.0 : 1.0;
     var end = widget.direction == AnimationDirection.forward ? 1.0 : 0.0;
     opacity = Tween<double>(begin: begin, end: end).animate(curved);
@@ -81,7 +81,7 @@ class _FadeWidgetState extends State<FadeWidget>
     opacity.removeStatusListener(animationStatusChange);
     controller.duration = widget.duration;
     controller.value = 0;
-    final curved = CurvedAnimation(parent: controller, curve: widget.curve);
+    final curved = controller.drive(CurveTween(curve: widget.curve));
     var begin = widget.direction == AnimationDirection.forward ? 0.0 : 1.0;
     var end = widget.direction == AnimationDirection.forward ? 1.0 : 0.0;
     opacity = Tween<double>(begin: begin, end: end).animate(curved);
