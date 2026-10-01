@@ -1,3 +1,18 @@
+## [2.1.2] - 2026-09-29
+* Update `flutter_lints` to 6.0.0 in the package and the example app.
+* Update the example app's `http` dependency to 1.6.0.
+
+## [2.1.1] - 2026-09-23
+* Fix the README build badge and demo image, which pointed at a retired CI service and a branch that no longer exists.
+* Fix the example app's SDK and `flutter_lints` constraints, which excluded every SDK the package supports.
+* Update the example app's Android build to AGP 9.
+* Pin the Flutter version used in CI and move the repository to a `main`-only branching model.
+
+## [2.1.0] - 2024-08-01
+* Raise the minimum SDK to Dart 3.0 and Flutter 3.10.
+* `alignment` accepts `AlignmentGeometry`, so `AlignmentDirectional` can be used.
+* Fix the fading-out widget never being removed when `fadeOutDuration` is `Duration.zero` (issue 34).
+
 ## [2.0.0] - 2023-09-25
 * Remove Blurhash dependency, see [in the readme](https://pub.dev/packages/octo_image#blurhash) how to keep using blurhash.
 
