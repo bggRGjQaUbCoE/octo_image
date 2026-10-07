@@ -141,6 +141,8 @@ class OctoImage extends StatefulWidget {
 
   /// Whether to continue showing the old image (true), or briefly show the
   /// placeholder (false), when the image provider changes.
+  final bool useOldImageOnUrlChange;
+
   final bool gaplessPlayback;
 
   /// Creates an OctoWidget that displays an image. The [image] is an
@@ -199,9 +201,10 @@ class OctoImage extends StatefulWidget {
     FilterQuality? filterQuality,
     this.colorBlendMode,
     Duration? placeholderFadeInDuration,
-    bool? gaplessPlayback,
+    bool? useOldImageOnUrlChange,
     int? memCacheWidth,
     int? memCacheHeight,
+    this.gaplessPlayback = false,
   })  : image = ResizeImage.resizeIfNeeded(
           memCacheWidth,
           memCacheHeight,
@@ -216,7 +219,7 @@ class OctoImage extends StatefulWidget {
         matchTextDirection = matchTextDirection ?? false,
         filterQuality = filterQuality ?? FilterQuality.low,
         placeholderFadeInDuration = placeholderFadeInDuration ?? Duration.zero,
-        gaplessPlayback = gaplessPlayback ?? false;
+        useOldImageOnUrlChange = useOldImageOnUrlChange ?? false;
 
   /// Creates an OctoWidget that displays an image with a predefined [OctoSet].
   /// The [image] is an ImageProvider and the OctoImage should work with any
@@ -265,9 +268,10 @@ class OctoImage extends StatefulWidget {
     FilterQuality? filterQuality,
     this.colorBlendMode,
     Duration? placeholderFadeInDuration,
-    bool? gaplessPlayback,
+    bool? useOldImageOnUrlChange,
     int? memCacheWidth,
     int? memCacheHeight,
+    this.gaplessPlayback = false,
   })  : image = ResizeImage.resizeIfNeeded(
           memCacheWidth,
           memCacheHeight,
@@ -286,7 +290,7 @@ class OctoImage extends StatefulWidget {
         matchTextDirection = matchTextDirection ?? false,
         filterQuality = filterQuality ?? FilterQuality.low,
         placeholderFadeInDuration = placeholderFadeInDuration ?? Duration.zero,
-        gaplessPlayback = gaplessPlayback ?? false;
+        useOldImageOnUrlChange = useOldImageOnUrlChange ?? false;
 
   @override
   State createState() => _OctoImageState();
@@ -320,20 +324,53 @@ class _OctoImageState extends State<OctoImage> {
       matchTextDirection: widget.matchTextDirection,
       filterQuality: widget.filterQuality,
       alwaysShowPlaceHolder: false,
+      gaplessPlayback: widget.gaplessPlayback,
     );
+  }
+
+  static bool _isSameImageProvider(ImageProvider a, ImageProvider b) {
+    if (a is ResizeImage && b is ResizeImage) {
+      return a.imageProvider == b.imageProvider;
+    }
+    return a == b;
   }
 
   @override
   void didUpdateWidget(OctoImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.image != widget.image) {
-      if (widget.gaplessPlayback) {
-        _previousHandler = _imageHandler;
-        _previousHandler?.alwaysShowPlaceHolder = false;
-      } else {
-        _previousHandler = null;
-      }
+    final isSameImageProvider = _isSameImageProvider(oldWidget.image, widget.image);
+    if (isSameImageProvider) {
+      _imageHandler
+        ..image = widget.image
+        ..imageBuilder = widget.imageBuilder
+        ..placeholderBuilder = widget.placeholderBuilder
+        ..progressIndicatorBuilder = widget.progressIndicatorBuilder
+        ..errorBuilder = widget.errorBuilder
+        ..placeholderFadeInDuration = widget.placeholderFadeInDuration
+        ..fadeOutDuration = widget.fadeOutDuration
+        ..fadeOutCurve = widget.fadeOutCurve
+        ..fadeInDuration = widget.fadeInDuration
+        ..fadeInCurve = widget.fadeInCurve
+        ..fit = widget.fit
+        ..width = widget.width
+        ..height = widget.height
+        ..alignment = widget.alignment
+        ..repeat = widget.repeat
+        ..color = widget.color
+        ..colorBlendMode = widget.colorBlendMode
+        ..matchTextDirection = widget.matchTextDirection
+        ..filterQuality = widget.filterQuality
+        ..gaplessPlayback = widget.gaplessPlayback;
+      return;
     }
+
+    if (widget.useOldImageOnUrlChange) {
+      _previousHandler = _imageHandler;
+      _previousHandler?.alwaysShowPlaceHolder = false;
+    } else {
+      _previousHandler = null;
+    }
+
     _imageHandler = ImageHandler(
       image: widget.image,
       imageBuilder: widget.imageBuilder,
@@ -358,6 +395,7 @@ class _OctoImageState extends State<OctoImage> {
       matchTextDirection: widget.matchTextDirection,
       filterQuality: widget.filterQuality,
       alwaysShowPlaceHolder: _previousHandler != null,
+      gaplessPlayback: widget.gaplessPlayback,
     );
   }
 

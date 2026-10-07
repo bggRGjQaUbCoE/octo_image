@@ -11,7 +11,7 @@ enum _PlaceholderType {
 
 class ImageHandler {
   /// The image that should be shown.
-  final ImageProvider image;
+  ImageProvider image;
 
   /// If non-null, require the image to have this width.
   ///
@@ -19,7 +19,7 @@ class ImageHandler {
   /// aspect ratio. This may result in a sudden change if the size of the
   /// placeholder widget does not match that of the target image. The size is
   /// also affected by the scale factor.
-  final double? width;
+  double? width;
 
   /// If non-null, require the image to have this height.
   ///
@@ -27,13 +27,13 @@ class ImageHandler {
   /// aspect ratio. This may result in a sudden change if the size of the
   /// placeholder widget does not match that of the target image. The size is
   /// also affected by the scale factor.
-  final double? height;
+  double? height;
 
   /// How to inscribe the image into the space allocated during layout.
   ///
   /// The default varies based on the other fields. See the discussion at
   /// [paintImage].
-  final BoxFit? fit;
+  BoxFit? fit;
 
   /// How to align the image within its bounds.
   ///
@@ -57,10 +57,10 @@ class ImageHandler {
   ///    specify an [AlignmentGeometry].
   ///  * [AlignmentDirectional], like [Alignment] for specifying alignments
   ///    relative to text direction.
-  final AlignmentGeometry alignment;
+  AlignmentGeometry alignment;
 
   /// How to paint any portions of the layout bounds not covered by the image.
-  final ImageRepeat repeat;
+  ImageRepeat repeat;
 
   /// Whether to paint the image in the direction of the [TextDirection].
   ///
@@ -77,11 +77,11 @@ class ImageHandler {
   ///
   /// If this is true, there must be an ambient [Directionality] widget in
   /// scope.
-  final bool matchTextDirection;
+  bool matchTextDirection;
 
   /// If non-null, this color is blended with each image pixel using
   /// [colorBlendMode].
-  final Color? color;
+  Color? color;
 
   /// Used to combine [color] with this image.
   ///
@@ -92,45 +92,47 @@ class ImageHandler {
   ///
   ///  * [BlendMode], which includes an illustration of the effect of each
   ///  blend mode.
-  final BlendMode? colorBlendMode;
+  BlendMode? colorBlendMode;
 
   /// Target the interpolation quality for image scaling.
   ///
   /// If not given a value, defaults to FilterQuality.low.
-  final FilterQuality filterQuality;
+  FilterQuality filterQuality;
 
   late _PlaceholderType _placeholderType;
 
   /// Optional builder to further customize the display of the image.
-  final OctoImageBuilder? imageBuilder;
+  OctoImageBuilder? imageBuilder;
 
   /// Widget displayed while the target [imageUrl] is loading.
-  final OctoPlaceholderBuilder? placeholderBuilder;
+  OctoPlaceholderBuilder? placeholderBuilder;
 
   /// Widget displayed while the target [imageUrl] is loading.
-  final OctoProgressIndicatorBuilder? progressIndicatorBuilder;
+  OctoProgressIndicatorBuilder? progressIndicatorBuilder;
 
   /// Widget displayed while the target [imageUrl] failed loading.
-  final OctoErrorBuilder? errorBuilder;
+  OctoErrorBuilder? errorBuilder;
 
   /// The duration of the fade-in animation for the [placeholderBuilder].
-  final Duration placeholderFadeInDuration;
+  Duration placeholderFadeInDuration;
 
   /// The duration of the fade-out animation for the [placeholderBuilder].
-  final Duration fadeOutDuration;
+  Duration fadeOutDuration;
 
   /// The curve of the fade-out animation for the [placeholderBuilder].
-  final Curve fadeOutCurve;
+  Curve fadeOutCurve;
 
   /// The duration of the fade-in animation for the [imageUrl].
-  final Duration fadeInDuration;
+  Duration fadeInDuration;
 
   /// The curve of the fade-in animation for the [imageUrl].
-  final Curve fadeInCurve;
+  Curve fadeInCurve;
 
   /// Indicates that placeholder should always be shown, even if the image
   /// was loaded in the first frame.
   bool alwaysShowPlaceHolder;
+
+  bool gaplessPlayback;
 
   ImageHandler({
     required this.image,
@@ -153,6 +155,7 @@ class ImageHandler {
     required this.fadeInDuration,
     required this.fadeInCurve,
     required this.alwaysShowPlaceHolder,
+    required this.gaplessPlayback,
   }) {
     _placeholderType = _definePlaceholderType();
   }
@@ -178,9 +181,17 @@ class ImageHandler {
     return errorBuilder != null ? _errorBuilder : null;
   }
 
+  static Key _key(ImageProvider image) {
+    if (image is ResizeImage) {
+      return ValueKey(image.imageProvider);
+    } else {
+      return ValueKey(image);
+    }
+  }
+
   Widget build(BuildContext context) {
     return Image(
-      key: ValueKey(image),
+      // key: _key(image),
       image: image,
       loadingBuilder: imageLoadingBuilder(),
       frameBuilder: imageFrameBuilder(),
@@ -194,6 +205,7 @@ class ImageHandler {
       colorBlendMode: colorBlendMode,
       matchTextDirection: matchTextDirection,
       filterQuality: filterQuality,
+      gaplessPlayback: gaplessPlayback,
     );
   }
 
@@ -227,6 +239,12 @@ class ImageHandler {
 
   Widget _placeholderBuilder(BuildContext context, Widget child, int? frame,
       bool wasSynchronouslyLoaded) {
+    if (gaplessPlayback) {
+      if (_isLoaded) {
+        return _image(context, child);
+      }
+      _isLoaded = frame != null;
+    }
     if (frame == null) {
       if (placeholderFadeInDuration != Duration.zero) {
         return FadeWidget(
@@ -312,7 +330,7 @@ class ImageHandler {
     if (placeholderBuilder != null) {
       return placeholderBuilder!(context);
     }
-    return Container();
+    return const SizedBox.shrink();
   }
 
   _PlaceholderType _definePlaceholderType() {
